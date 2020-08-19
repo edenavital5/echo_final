@@ -6,11 +6,11 @@ pipeline {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'master') {
-                        sh "docker build -t 1.0.${BUILD_NUMBER} ."
+                        sh "docker build -t edenavital/echo-app:1.0.${BUILD_NUMBER} ."
                     } else if (env.BRANCH_NAME == 'dev'){
-                        sh "docker build -t dev-${GIT_COMMIT} ."
+                        sh "docker build -t edenavital/echo-app:dev-${GIT_COMMIT} ."
                     } else if (env.BRANCH_NAME == 'staging'){
-                        sh "docker build -t staging-${GIT_COMMIT} ."
+                        sh "docker build -t edenavital/echo-app:staging-${GIT_COMMIT} ."
                     }
                 }
             }
