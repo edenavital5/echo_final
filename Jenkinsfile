@@ -1,59 +1,38 @@
-// def version="\$(./calculate.sh)"
 pipeline {
     agent any
 
-    // triggers {
-    //     github(
-    //         triggerOnPush: true,
-    //         triggerOnMergeRequest: true,
-    //         branchFilterType: 'All',
-    //         addVoteOnMergeRequest: true)
-    // }
-    stages {
+    stages { 
         stage('build') {
-            steps{
-                script{
-                        sh "echo hello"
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'master') {
+                        sh "docker build -t edenavital/echo-app:1.0.${BUILD_NUMBER} ."
+                    } else if (env.BRANCH_NAME == 'dev'){
+                        sh "docker build -t edenavital/echo-app:dev-${GIT_COMMIT} ."
+                    } else if (env.BRANCH_NAME == 'staging'){
+                        sh "docker build -t edenavital/echo-app:staging-${GIT_COMMIT} ."
                     }
                 }
             }
-        // stage('build_master') {
-        //     when {
-        //         expression { BRANCH_NAME =~ /^(master)/}
-        //     }
-        //     steps{
-        //         configFileProvider(
-        //         [configFile(fileId: 'settings', variable: 'MAVEN_SETTINGS')]) {
-        //         sh "mvn versions:set -DnewVersion=1.0-SNAPSHOT"
-        //         sh "mvn -s $MAVEN_SETTINGS clean deploy"
-        //         }
-        //     }
-        // }
-        // stage('build_release') {
-        //     when {
-        //         expression { BRANCH_NAME =~ /^(release\*)/}
-        //     }
-        //     steps{
-        //         sh "chmod 700 ./calculate.sh"
-        //         configFileProvider(
-        //         [configFile(fileId: 'settings', variable: 'MAVEN_SETTINGS')]) {
-        //         sh "mvn versions:set -DnewVersion=$version"
-        //         sh "mvn -s $MAVEN_SETTINGS clean deploy"
-        //         }
-        //     }
-        // }
-        // stage('build_else') {
-        //     when {
-        //         not{
-        //             expression { BRANCH_NAME =~ /^(master)/}
-        //         }
-        //         not{
-        //             expression { BRANCH_NAME =~ /^(release\*)/}
-        //         }
-        //     }
-        //     steps{
-        //         sh "mvn clean install"
-        //     }
-        // }
+        }
+
+        stage('deploy') {
+            steps{
+                script{
+                  withCredentials([[$class: 'UsernamePasswordMultiBinding',credentialsId: 'dockerhub',usernameVariable: 'USER',passwordVariable: 'PASSWORD']]){
+                  sh "docker login -u $USER -p $PASSWORD"
+                    if (env.BRANCH_NAME == 'master') {
+                        sh "docker push edenavital/echo-app:1.0.${BUILD_NUMBER}"
+                    } else if (env.BRANCH_NAME == 'dev'){
+                        sh "docker push edenavital/echo-app:dev-${GIT_COMMIT}"
+                    } else if (env.BRANCH_NAME == 'staging'){
+                        sh "docker push edenavital/echo-app:staging-${GIT_COMMIT}"
+                    }
+                    }
+                }
+            }
+        }
+
+
     }
 }
