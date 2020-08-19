@@ -9,51 +9,32 @@ pipeline {
     //         branchFilterType: 'All',
     //         addVoteOnMergeRequest: true)
     // }
-    stages {
+    stages { 
         stage('build') {
+            when {
+                expression { BRANCH_NAME =~ /^(master$)/}
+            }
             steps{
                 script{
-                        sh "echo hello"
-                    }
+                    sh "docker build -t 1.0.${BUILD_NUMBER} ."
                 }
             }
-        // stage('build_master') {
-        //     when {
-        //         expression { BRANCH_NAME =~ /^(master)/}
-        //     }
-        //     steps{
-        //         configFileProvider(
-        //         [configFile(fileId: 'settings', variable: 'MAVEN_SETTINGS')]) {
-        //         sh "mvn versions:set -DnewVersion=1.0-SNAPSHOT"
-        //         sh "mvn -s $MAVEN_SETTINGS clean deploy"
-        //         }
-        //     }
-        // }
-        // stage('build_release') {
-        //     when {
-        //         expression { BRANCH_NAME =~ /^(release\*)/}
-        //     }
-        //     steps{
-        //         sh "chmod 700 ./calculate.sh"
-        //         configFileProvider(
-        //         [configFile(fileId: 'settings', variable: 'MAVEN_SETTINGS')]) {
-        //         sh "mvn versions:set -DnewVersion=$version"
-        //         sh "mvn -s $MAVEN_SETTINGS clean deploy"
-        //         }
-        //     }
-        // }
-        // stage('build_else') {
-        //     when {
-        //         not{
-        //             expression { BRANCH_NAME =~ /^(master)/}
-        //         }
-        //         not{
-        //             expression { BRANCH_NAME =~ /^(release\*)/}
-        //         }
-        //     }
-        //     steps{
-        //         sh "mvn clean install"
-        //     }
-        // }
+            // when {
+            //     expression { BRANCH_NAME =~ /^(dev$)/}
+            // }
+            // steps{
+            //     script{
+            //         sh "docker build -t dev-${GIT_COMMIT_HASH} ."
+            //     }
+            // }
+            // when {
+            //     expression { BRANCH_NAME =~ /^(staging$)/}
+            // }
+            // steps{
+            //     script{
+            //         sh "docker build -t staging-${GIT_COMMIT_HASH} ."
+            //     }
+            // }
+        }
     }
 }
