@@ -1,53 +1,38 @@
-// def version="\$(./calculate.sh)"
 pipeline {
     agent any
 
-    // triggers {
-    //     github(
-    //         triggerOnPush: true,
-    //         triggerOnMergeRequest: true,
-    //         branchFilterType: 'All',
-    //         addVoteOnMergeRequest: true)
-    // }
     stages { 
         stage('build') {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'master') {
-                        sh "docker build -t 1.0.${BUILD_NUMBER} ."
-                    } else {
-                        sh "docker build -t dev-${GIT_COMMIT_HASH} ."
+                        sh "docker build -t edenavital/echo-app:1.0.${BUILD_NUMBER} ."
+                    } else if (env.BRANCH_NAME == 'dev'){
+                        sh "docker build -t edenavital/echo-app:dev-${GIT_COMMIT} ."
+                    } else if (env.BRANCH_NAME == 'staging'){
+                        sh "docker build -t edenavital/echo-app:staging-${GIT_COMMIT} ."
+                    }
+                }
+            }
+        }
+
+        stage('deploy') {
+            steps{
+                script{
+                  withCredentials([[$class: 'UsernamePasswordMultiBinding',credentialsId: 'dockerhub',usernameVariable: 'USER',passwordVariable: 'PASSWORD']]){
+                  sh "docker login -u $USER -p $PASSWORD"
+                    if (env.BRANCH_NAME == 'master') {
+                        sh "docker push edenavital/echo-app:1.0.${BUILD_NUMBER}"
+                    } else if (env.BRANCH_NAME == 'dev'){
+                        sh "docker push edenavital/echo-app:dev-${GIT_COMMIT}"
+                    } else if (env.BRANCH_NAME == 'staging'){
+                        sh "docker push edenavital/echo-app:staging-${GIT_COMMIT}"
+                    }
                     }
                 }
             }
         }
 
 
-        // stage('build') {
-        //     when {
-        //         expression { BRANCH_NAME =~ /^(master$)/}
-        //     }
-        //     steps{
-        //         script{
-        //             sh "docker build -t 1.0.${BUILD_NUMBER} ."
-        //         }
-        //     }
-        //     when {
-        //         expression { BRANCH_NAME =~ /^(dev$)/}
-        //     }
-        //     steps{
-        //         script{
-        //             sh "docker build -t dev-${GIT_COMMIT_HASH} ."
-        //         }
-        //     }
-        //     when {
-        //         expression { BRANCH_NAME =~ /^(staging$)/}
-        //     }
-        //     steps{
-        //         script{
-        //             sh "docker build -t staging-${GIT_COMMIT_HASH} ."
-        //         }
-        //     }
-        // }
     }
 }
